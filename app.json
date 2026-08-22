@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Maxxitect",
+    "slug": "Maxxitect",
+    "scheme": "maxxitect",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.jpg",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.jpg",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/icon.jpg"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.jpg"
+    }
+  }
+}
