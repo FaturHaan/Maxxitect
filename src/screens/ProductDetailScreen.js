@@ -9,16 +9,14 @@ export default function ProductDetailScreen({ route, navigation }) {
   const [imageError, setImageError] = useState(false);
 
   const handleContactRetailer = () => {
-    const phoneNumber = "6285394501659"; // Ganti dengan nomor asli
+    const phoneNumber = "6285394501659";
     const message = `Halo, saya tertarik dengan produk ${product.productName} dari aplikasi Maxxitect. Bisa dibantu info lebih lanjut?`;
-    const url = `whatsapp://send?text=${encodeURIComponent(message)}&phone=${phoneNumber}`;
+    
+    // Menggunakan tautan wa.me lebih andal dan tidak memerlukan izin khusus OS
+    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
-    Linking.canOpenURL(url).then(supported => {
-      if (supported) {
-        Linking.openURL(url);
-      } else {
-        Alert.alert("Gagal", "Aplikasi WhatsApp tidak terinstall di perangkat ini.");
-      }
+    Linking.openURL(url).catch(() => {
+      Alert.alert("Gagal", "Tidak dapat membuka halaman WhatsApp.");
     });
   };
 

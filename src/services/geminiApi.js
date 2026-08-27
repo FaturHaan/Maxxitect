@@ -69,7 +69,7 @@ export const analyzeCropIssue = async (text, base64Image = null, mimeType = 'ima
     } else if (statusCode === 403) {
       pesanError = 'Akses ke layanan AI ditolak. Periksa konfigurasi API Key di server.';
     } else if (statusCode === 500 || statusCode === 503) {
-      pesanError = 'Server AI sedang mengalami gangguan. Silakan coba lagi nanti.';
+      pesanError = 'Server AI sedang mengalami gangguan. Silakan coba model AI lain atau coba lagi nanti.';
     } else if (serverMessage.includes('high demand')) {
       pesanError = 'Server AI sedang ramai digunakan. Lonjakan ini biasanya bersifat sementara. Silakan coba lagi sebentar lagi.';
     } else if (serverMessage.includes('timeout') || serverMessage.includes('ECONNABORTED')) {
