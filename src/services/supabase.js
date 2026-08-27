@@ -33,6 +33,7 @@ export async function fetchProducts() {
     const formattedData = data.map((product) => ({
       id: product.id,
       keywords: product.keywords || [],
+      category: product.category || '',
       productName: product.product_name,
       description: product.description,
       dosage: product.dosage,

@@ -48,25 +48,56 @@ export default function ResultScreen({ route, navigation }) {
     return [];
   };
 
+  /**
+   * Mapping dari jenisMasalah (output AI) ke category produk yang relevan.
+   * Digunakan untuk memfilter produk sebelum fuzzy matching.
+   */
+  const CATEGORY_MAP = {
+    hama: ['insektisida', 'moluskisida', 'rodentisida'],
+    penyakit: ['fungisida', 'bakterisida'],
+    gulma: ['herbisida'],
+    defisiensi: ['pupuk', 'zpt'],
+  };
+
   const matchProducts = (catalog) => {
     if (!diagnosis || !diagnosis.penyakit) return [];
 
     const penyakitName = diagnosis.penyakit.toLowerCase();
     const penjelasan = (diagnosis.penjelasan || '').toLowerCase();
+    const jenisMasalah = (diagnosis.jenisMasalah || '').toLowerCase();
     
-    // Gabungkan nama penyakit dan penjelasan sebagai teks referensi
     const teksReferensi = `${penyakitName} ${penjelasan}`;
 
     console.log('[DEBUG] Teks referensi AI:', teksReferensi);
+    console.log('[DEBUG] Jenis masalah:', jenisMasalah);
     console.log('[DEBUG] Jumlah produk di katalog:', catalog.length);
 
+    // STEP 1: Filter berdasarkan kategori (jika tersedia)
+    let filteredCatalog = catalog;
+    
+    if (jenisMasalah && CATEGORY_MAP[jenisMasalah]) {
+      const allowedCategories = CATEGORY_MAP[jenisMasalah];
+      filteredCatalog = catalog.filter(
+        (p) => allowedCategories.includes((p.category || '').toLowerCase())
+      );
+      
+      console.log(`[DEBUG] Filter kategori: ${allowedCategories.join(', ')} → ${filteredCatalog.length} produk`);
+      
+      // Fallback: jika filter terlalu ketat (0 produk), gunakan semua
+      if (filteredCatalog.length === 0) {
+        console.log('[DEBUG] Filter kategori kosong, fallback ke semua produk');
+        filteredCatalog = catalog;
+      }
+    }
+
+    // STEP 2: Fuzzy matching (pada filteredCatalog)
     const fuse = new Fuse([teksReferensi], {
       includeScore: true,
       threshold: 0.3,
       ignoreLocation: true,
     });
 
-    const scoredProducts = catalog.map(product => {
+    const scoredProducts = filteredCatalog.map(product => {
       const keywords = normalizeKeywords(product.keywords);
       let score = 0;
 

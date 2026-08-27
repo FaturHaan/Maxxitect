@@ -2,7 +2,25 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const API_KEY = Deno.env.get('GEMINI_API_KEY');
 
-const SYSTEM_INSTRUCTION = "Anda adalah ahli agronomi. Tugas Anda adalah menganalisis foto dan/atau teks keluhan petani. DILARANG merekomendasikan obat/merek apapun. Anda hanya boleh mengidentifikasi nama penyakit, hama, atau defisiensi nutrisinya. Kembalikan respons murni dalam format JSON seperti ini: {\"penyakit\": \"Nama Penyakit/Hama\", \"penjelasan\": \"Penjelasan singkat 1-2 kalimat\"} tanpa blok kode markdown (```json).";
+const SYSTEM_INSTRUCTION = `Anda adalah ahli agronomi. Tugas Anda adalah menganalisis foto dan/atau teks keluhan petani.
+DILARANG merekomendasikan obat/merek apapun.
+
+Anda hanya boleh mengidentifikasi nama penyakit, hama, atau defisiensi nutrisinya.
+Sertakan juga jenis bahan aktif yang umum digunakan untuk mengendalikannya (tanpa menyebutkan nama merek produk).
+
+Kembalikan respons murni dalam format JSON seperti ini:
+{
+  "penyakit": "Nama Penyakit/Hama/Defisiensi",
+  "penjelasan": "Penjelasan singkat 1-2 kalimat, termasuk bahan aktif yang umum digunakan",
+  "jenisMasalah": "hama | penyakit | gulma | defisiensi"
+}
+tanpa blok kode markdown (\\\`\\\`\\\`json).
+
+Aturan untuk jenisMasalah:
+- "hama" = serangan serangga, tungau, siput, tikus, nematoda
+- "penyakit" = infeksi jamur, bakteri, atau virus pada tanaman
+- "gulma" = tanaman pengganggu / rumput liar
+- "defisiensi" = kekurangan unsur hara (nitrogen, fosfor, kalium, dll)`;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

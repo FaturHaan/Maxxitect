@@ -8,7 +8,7 @@ export default function ProductDetailScreen({ route, navigation }) {
   const { product } = route.params;
   const [imageError, setImageError] = useState(false);
 
-  const handleContactDistributor = () => {
+  const handleContactRetailer = () => {
     const phoneNumber = "6285394501659"; // Ganti dengan nomor asli
     const message = `Halo, saya tertarik dengan produk ${product.productName} dari aplikasi Maxxitect. Bisa dibantu info lebih lanjut?`;
     const url = `whatsapp://send?text=${encodeURIComponent(message)}&phone=${phoneNumber}`;
@@ -97,11 +97,11 @@ export default function ProductDetailScreen({ route, navigation }) {
         </View>
       )}
 
-      {/* Tombol Hubungi Distributor */}
-      <TouchableOpacity style={styles.contactBtn} onPress={handleContactDistributor}>
+      {/* Tombol Hubungi Retailer */}
+      <TouchableOpacity style={styles.contactBtn} onPress={handleContactRetailer}>
         <View style={styles.contactBtnContent}>
           <Ionicons name="chatbox-ellipses-outline" size={24} color="#fff" />
-          <Text style={styles.contactBtnText}>Hubungi distributor</Text>
+          <Text style={styles.contactBtnText}>Hubungi retailer</Text>
         </View>
       </TouchableOpacity>
 
