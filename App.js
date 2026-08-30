@@ -1,16 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, ActivityIndicator, Image } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
 import * as WebBrowser from 'expo-web-browser';
 import HomeScreen from './src/screens/HomeScreen';
 import ResultScreen from './src/screens/ResultScreen';
 import ProductDetailScreen from './src/screens/ProductDetailScreen';
-import OnboardingScreen from './src/screens/OnboardingScreen';
 import RelatedPackagesScreen from './src/screens/RelatedPackagesScreen';
 import ProductListScreen from './src/screens/ProductListScreen';
 import PackageListScreen from './src/screens/PackageListScreen';
@@ -149,38 +147,10 @@ function MainTabs() {
 }
 
 export default function App() {
-  const [isFirstLaunch, setIsFirstLaunch] = useState(null);
-
-  useEffect(() => {
-    async function checkOnboardingStatus() {
-      try {
-        const hasOnboarded = await AsyncStorage.getItem('@has_onboarded');
-        if (hasOnboarded === 'true') {
-          setIsFirstLaunch(false);
-        } else {
-          setIsFirstLaunch(true);
-        }
-      } catch (error) {
-        console.error('Error reading onboarding status', error);
-        setIsFirstLaunch(false); // Fallback jika gagal baca
-      }
-    }
-    
-    checkOnboardingStatus();
-  }, []);
-
-  if (isFirstLaunch === null) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#007A33" />
-      </View>
-    );
-  }
-
   return (
     <NavigationContainer>
       <Stack.Navigator 
-        initialRouteName={isFirstLaunch ? "Onboarding" : "Main"}
+        initialRouteName="Main"
         screenOptions={{
           headerStyle: {
             backgroundColor: '#007A33', // Warna hijau Maxxi Agri
@@ -191,11 +161,6 @@ export default function App() {
           },
         }}
       >
-        <Stack.Screen 
-          name="Onboarding" 
-          component={OnboardingScreen} 
-          options={{ headerShown: false }} 
-        />
         <Stack.Screen 
           name="Main" 
           component={MainTabs} 

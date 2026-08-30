@@ -4,7 +4,6 @@ import {
   Image, ActivityIndicator, Alert, ScrollView, KeyboardAvoidingView, Platform, Modal
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { analyzeCropIssue } from '../services/geminiApi';
 import { authService } from '../services/authService';
 import { Ionicons } from '@expo/vector-icons';
@@ -31,18 +30,6 @@ export default function HomeScreen({ navigation, user }) {
       await authService.signOut();
     } catch (error) {
       Alert.alert('Gagal Keluar', error.message);
-    }
-  };
-
-  const resetOnboarding = async () => {
-    try {
-      await AsyncStorage.removeItem('@has_onboarded');
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Onboarding' }],
-      });
-    } catch (e) {
-      console.error('Error resetting onboarding', e);
     }
   };
 
@@ -253,12 +240,6 @@ export default function HomeScreen({ navigation, user }) {
             <Text style={styles.analyzeBtnText}>Analisis Sekarang</Text>
           )}
         </TouchableOpacity>
-
-        {__DEV__ && (
-          <TouchableOpacity style={styles.devResetBtn} onPress={resetOnboarding}>
-            <Text style={styles.devResetText}>🔄 Reset Onboarding (Dev Only)</Text>
-          </TouchableOpacity>
-        )}
 
       </ScrollView>
 
@@ -602,20 +583,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 17,
     fontWeight: 'bold',
-  },
-  devResetBtn: {
-    marginTop: 24,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#fff3cd',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ffc107',
-    alignItems: 'center',
-  },
-  devResetText: {
-    color: '#856404',
-    fontSize: 13,
-    fontWeight: '600',
   },
 });
