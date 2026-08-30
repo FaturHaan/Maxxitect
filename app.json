@@ -12,23 +12,8 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#ffffff",
-        "foregroundImage": "./assets/icon.jpg"
-      },
-      "package": "com.faturhaan2.Maxxitect"
-    },
     "web": {
       "favicon": "./assets/favicon.jpg"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "aa47188b-81bf-41f5-9e91-738f28eb259d"
-      }
     }
   }
 }
