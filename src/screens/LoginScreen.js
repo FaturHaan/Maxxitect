@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image, Ale
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../services/supabase';
 import { authService } from '../services/authService';
+import { BRAND_COLOR, DAILY_USAGE_LIMIT } from '../constants/config';
 
 WebBrowser.maybeCompleteAuthSession();
 
-export default function LoginScreen({ navigation, route }) {
+export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const processAuthUrl = async (url) => {
@@ -20,7 +21,6 @@ export default function LoginScreen({ navigation, route }) {
       const accessToken = params.get('access_token');
       const refreshToken = params.get('refresh_token');
 
-      // Abaikan jika bukan URL callback dari Supabase (misal URL launch Expo biasa)
       if (!code && !accessToken) {
         return;
       }
@@ -33,12 +33,12 @@ export default function LoginScreen({ navigation, route }) {
 
       if (code) {
         setLoading(true);
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) throw error;
         console.log('[Auth] Logged in successfully with code exchange!');
       } else if (accessToken && refreshToken) {
         setLoading(true);
-        const { data, error } = await supabase.auth.setSession({
+        const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
@@ -54,7 +54,6 @@ export default function LoginScreen({ navigation, route }) {
   };
 
   useEffect(() => {
-    // Tangkap deep link yang masuk ke aplikasi
     const subscription = Linking.addEventListener('url', ({ url }) => {
       console.log('[Auth] Incoming URL via Linking event:', url);
       processAuthUrl(url);
@@ -85,12 +84,7 @@ export default function LoginScreen({ navigation, route }) {
 
       if (data?.url) {
         console.log('[Auth] Opening OAuth URL in external browser...');
-        // Kita menggunakan Linking.openURL untuk membuka browser penuh (bukan in-app tab)
-        // karena Custom Tabs di beberapa HP Android macet di halaman Google.
         await Linking.openURL(data.url);
-        
-        // Catatan: Karena kita memakai browser eksternal, kita tidak menunggu 'res' dari WebBrowser.
-        // Kita murni mengandalkan Linking.addEventListener yang sudah kita buat di atas untuk menangkap URL kembalian.
       }
     } catch (error) {
       Alert.alert('Gagal Login', error.message || 'Terjadi kesalahan saat login.');
@@ -116,7 +110,7 @@ export default function LoginScreen({ navigation, route }) {
         <Text style={styles.cardDesc}>
           Silakan masuk menggunakan akun Google Anda untuk mengakses fitur Diagnosis AI. 
           {'\n\n'}
-          Setiap pengguna mendapatkan gratis limit <Text style={styles.bold}>15 kali per hari</Text>.
+          Setiap pengguna mendapatkan gratis limit <Text style={styles.bold}>{DAILY_USAGE_LIMIT} kali per hari</Text>.
         </Text>
 
         <TouchableOpacity 
@@ -125,7 +119,7 @@ export default function LoginScreen({ navigation, route }) {
           disabled={loading}
         >
           {loading ? (
-             <ActivityIndicator color="#007A33" size="small" />
+             <ActivityIndicator color={BRAND_COLOR} size="small" />
           ) : (
              <Text style={styles.loginBtnText}>Masuk dengan Google</Text>
           )}
@@ -138,7 +132,7 @@ export default function LoginScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#007A33', // Hijau Maxxi Agri
+    backgroundColor: BRAND_COLOR, // Menggunakan variabel global
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -193,7 +187,7 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: 'bold',
-    color: '#007A33',
+    color: BRAND_COLOR,
   },
   loginBtn: {
     backgroundColor: '#fff',
@@ -204,14 +198,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: '#007A33',
+    borderColor: BRAND_COLOR,
   },
   loginBtnDisabled: {
     borderColor: '#ccc',
     backgroundColor: '#f5f5f5',
   },
   loginBtnText: {
-    color: '#007A33',
+    color: BRAND_COLOR,
     fontSize: 16,
     fontWeight: 'bold',
   },

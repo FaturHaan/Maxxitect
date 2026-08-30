@@ -1,137 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator 
+  View, Text, StyleSheet, ScrollView, ActivityIndicator 
 } from 'react-native';
-import Fuse from 'fuse.js';
-import { fetchProducts } from '../services/supabase';
+import { fetchProducts } from '../services/productService';
+import { matchProducts } from '../utils/productMatcher';
+import ResultProductCard from '../components/product/ResultProductCard';
 
 export default function ResultScreen({ route, navigation }) {
   const { diagnosis } = route.params;
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [catalogError, setCatalogError] = useState(false);
-  const [usedCache, setUsedCache] = useState(false);
-
-  /**
-   * Fuzzy matching menggunakan fuse.js
-   * Mencari produk berdasarkan kecocokan keyword dengan nama penyakit.
-   * Jauh lebih kuat dari keyword.includes() karena bisa menangani:
-   * - Sinonim parsial ("blast" cocok dengan "hawar daun / blast")
-   * - Typo ringan ("wereng" cocok dengan "werreng")
-   * - Substring ("penggerek" cocok dengan "penggerek batang padi")
-   */
-  /**
-   * Normalisasi keywords: menangani string, array, atau format PostgreSQL array.
-   * Supabase bisa mengembalikan keywords dalam berbagai format tergantung tipe kolom.
-   */
-  const normalizeKeywords = (keywords) => {
-    if (!keywords) return [];
-    
-    // Sudah array? Langsung kembalikan
-    if (Array.isArray(keywords)) return keywords;
-    
-    // String? Coba parse berbagai format
-    if (typeof keywords === 'string') {
-      // Format PostgreSQL array: "{siput,keong,murbai}"
-      if (keywords.startsWith('{') && keywords.endsWith('}')) {
-        return keywords.slice(1, -1).split(',').map(k => k.trim().replace(/"/g, ''));
-      }
-      // Format JSON array: '["siput","keong"]'
-      try {
-        const parsed = JSON.parse(keywords);
-        if (Array.isArray(parsed)) return parsed;
-      } catch (e) { /* bukan JSON, lanjutkan */ }
-      // Format comma-separated: "siput, keong, murbai"
-      return keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
-    }
-    
-    return [];
-  };
-
-  /**
-   * Mapping dari jenisMasalah (output AI) ke category produk yang relevan.
-   * Digunakan untuk memfilter produk sebelum fuzzy matching.
-   */
-  const CATEGORY_MAP = {
-    hama: ['insektisida', 'moluskisida', 'rodentisida'],
-    penyakit: ['fungisida', 'bakterisida'],
-    gulma: ['herbisida'],
-    defisiensi: ['pupuk', 'zpt'],
-  };
-
-  const matchProducts = (catalog) => {
-    if (!diagnosis || !diagnosis.penyakit) return [];
-
-    const penyakitName = diagnosis.penyakit.toLowerCase();
-    const penjelasan = (diagnosis.penjelasan || '').toLowerCase();
-    const jenisMasalah = (diagnosis.jenisMasalah || '').toLowerCase();
-    
-    const teksReferensi = `${penyakitName} ${penjelasan}`;
-
-    console.log('[DEBUG] Teks referensi AI:', teksReferensi);
-    console.log('[DEBUG] Jenis masalah:', jenisMasalah);
-    console.log('[DEBUG] Jumlah produk di katalog:', catalog.length);
-
-    // STEP 1: Filter berdasarkan kategori (jika tersedia)
-    let filteredCatalog = catalog;
-    
-    if (jenisMasalah && CATEGORY_MAP[jenisMasalah]) {
-      const allowedCategories = CATEGORY_MAP[jenisMasalah];
-      filteredCatalog = catalog.filter(
-        (p) => allowedCategories.includes((p.category || '').toLowerCase())
-      );
-      
-      console.log(`[DEBUG] Filter kategori: ${allowedCategories.join(', ')} → ${filteredCatalog.length} produk`);
-      
-      // Fallback: jika filter terlalu ketat (0 produk), gunakan semua
-      if (filteredCatalog.length === 0) {
-        console.log('[DEBUG] Filter kategori kosong, fallback ke semua produk');
-        filteredCatalog = catalog;
-      }
-    }
-
-    // STEP 2: Fuzzy matching (pada filteredCatalog)
-    const fuse = new Fuse([teksReferensi], {
-      includeScore: true,
-      threshold: 0.3,
-      ignoreLocation: true,
-    });
-
-    const scoredProducts = filteredCatalog.map(product => {
-      const keywords = normalizeKeywords(product.keywords);
-      let score = 0;
-
-      if (keywords.length > 0) {
-        keywords.forEach(kw => {
-          // 1. Cek Exact Match (Point = 1)
-          if (teksReferensi.includes(kw.toLowerCase())) {
-            score += 1;
-            console.log(`[DEBUG] ✅ Exact match: "${kw}" untuk produk ${product.productName}`);
-          } 
-          // 2. Cek Fuzzy Match jika exact tidak kena (Point = 0.8)
-          else {
-            const results = fuse.search(kw);
-            if (results.length > 0 && results[0].score < 0.4) {
-              score += 0.8;
-              console.log(`[DEBUG] ✅ Fuzzy match: "${kw}" (skor: ${results[0].score}) untuk produk ${product.productName}`);
-            }
-          }
-        });
-      }
-
-      return { ...product, matchScore: score };
-    });
-
-    // Buang yang skornya 0 (tidak relevan sama sekali)
-    // Lalu urutkan (sort) dari skor tertinggi (paling banyak match) ke terendah
-    const sortedProducts = scoredProducts
-      .filter(p => p.matchScore > 0)
-      .sort((a, b) => b.matchScore - a.matchScore);
-
-    console.log(`[DEBUG] Hasil Sorting:`, sortedProducts.map(p => `${p.productName} (Skor: ${p.matchScore})`));
-    
-    return sortedProducts;
-  };
 
   useEffect(() => {
     let mounted = true;
@@ -142,11 +21,10 @@ export default function ResultScreen({ route, navigation }) {
         const products = await fetchProducts();
         if (mounted) {
           setCatalogError(false);
-          setUsedCache(false);
-          setRecommendedProducts(matchProducts(products));
+          setRecommendedProducts(matchProducts(products, diagnosis));
         }
       } catch (error) {
-        console.warn('[Katalog] Gagal memuat katalog online:', error.message);
+        console.warn('[Katalog] Gagal memuat katalog:', error.message);
         if (mounted) {
           setCatalogError(true);
           setRecommendedProducts([]);
@@ -194,7 +72,7 @@ export default function ResultScreen({ route, navigation }) {
           {/* Daftar Produk Rekomendasi */}
           {recommendedProducts.length > 0 ? (
             recommendedProducts.map((product, index) => (
-              <ProductCard 
+              <ResultProductCard 
                 key={product.id} 
                 product={product} 
                 onPress={() => handleOpenDetail(product)} 
@@ -212,45 +90,6 @@ export default function ResultScreen({ route, navigation }) {
     </ScrollView>
   );
 }
-
-// Komponen Card Produk — sekarang bisa di-klik untuk ke halaman detail
-const ProductCard = ({ product, onPress, isTopMatch }) => {
-  const [imageError, setImageError] = useState(false);
-
-  return (
-    <TouchableOpacity 
-      style={[
-        styles.productCard, 
-        isTopMatch && styles.topMatchCard // Tambahkan styling khusus untuk Top Match
-      ]} 
-      onPress={onPress} 
-      activeOpacity={0.85}
-    >
-      <Image 
-        source={{ 
-          uri: imageError 
-            ? 'https://dummyimage.com/200x200/cccccc/000000&text=No+Image' 
-            : product.imageUrl 
-        }}
-        style={styles.productImage}
-        onError={() => setImageError(true)}
-      />
-      <View style={styles.productInfo}>
-        <Text style={styles.productName}>{product.productName}</Text>
-        <Text style={styles.productDesc} numberOfLines={2}>{product.description}</Text>
-        
-        <View style={styles.dosageContainer}>
-          <Text style={styles.dosageLabel}>Dosis:</Text>
-          <Text style={styles.dosageValue}>{product.dosage}</Text>
-        </View>
-
-        <View style={styles.detailHint}>
-          <Text style={styles.detailHintText}>Ketuk untuk lihat detail →</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
 
 const styles = StyleSheet.create({
   container: {
@@ -305,87 +144,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingLeft: 4,
   },
-  productCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  topMatchCard: {
-    borderWidth: 2,
-    borderColor: '#FFD700', // Warna emas
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  topMatchBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#FFD700',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    zIndex: 10, // Agar berada di atas gambar
-  },
-  topMatchBadgeText: {
-    color: '#8B6508', // Teks emas tua (dark gold) agar terbaca jelas
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-  productImage: {
-    width: '100%',
-    height: 180,
-    resizeMode: 'contain',
-    backgroundColor: '#fff',
-  },
-  productInfo: {
-    padding: 20,
-  },
-  productName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#007A33',
-    marginBottom: 8,
-  },
-  productDesc: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  dosageContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#F9F9F9',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    alignItems: 'center',
-  },
-  dosageLabel: {
-    fontWeight: 'bold',
-    color: '#444',
-    marginRight: 6,
-  },
-  dosageValue: {
-    color: '#333',
-    flex: 1,
-  },
-  detailHint: {
-    alignItems: 'flex-end',
-  },
-  detailHintText: {
-    color: '#007A33',
-    fontSize: 13,
-    fontWeight: '600',
-  },
   noProductCard: {
     backgroundColor: '#fff',
     padding: 24,
@@ -423,4 +181,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-

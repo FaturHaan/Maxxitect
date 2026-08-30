@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, Image } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -14,6 +14,7 @@ import ProductListScreen from './src/screens/ProductListScreen';
 import PackageListScreen from './src/screens/PackageListScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import { supabase } from './src/services/supabase';
+import { BRAND_COLOR, BRAND_COLOR_LIGHT } from './src/constants/config';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -52,7 +53,7 @@ function DiagnosisTabWrapper({ navigation }) {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#007A33" />
+        <ActivityIndicator size="large" color={BRAND_COLOR} />
       </View>
     );
   }
@@ -69,7 +70,7 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerStyle: {
-          backgroundColor: '#007A33',
+          backgroundColor: BRAND_COLOR,
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -90,14 +91,14 @@ function MainTabs() {
               height: 32,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: focused ? '#E8F5E9' : 'transparent',
+              backgroundColor: focused ? BRAND_COLOR_LIGHT : 'transparent',
               borderRadius: 16,
             }}>
               <Ionicons name={iconName} size={22} color={color} />
             </View>
           );
         },
-        tabBarActiveTintColor: '#007A33',
+        tabBarActiveTintColor: BRAND_COLOR,
         tabBarInactiveTintColor: '#999',
         tabBarStyle: {
           backgroundColor: '#fff',
@@ -153,7 +154,7 @@ export default function App() {
         initialRouteName="Main"
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#007A33', // Warna hijau Maxxi Agri
+            backgroundColor: BRAND_COLOR,
           },
           headerTintColor: '#fff',
           headerTitleStyle: {

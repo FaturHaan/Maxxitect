@@ -3,17 +3,17 @@ import {
   View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Linking, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { RETAILER_WHATSAPP, FALLBACK_PRODUCT_IMAGE, BRAND_COLOR } from '../constants/config';
 
 export default function ProductDetailScreen({ route, navigation }) {
   const { product } = route.params;
   const [imageError, setImageError] = useState(false);
 
   const handleContactRetailer = () => {
-    const phoneNumber = "6285394501659";
     const message = `Halo, saya tertarik dengan produk ${product.productName} dari aplikasi Maxxitect. Bisa dibantu info lebih lanjut?`;
     
     // Menggunakan tautan wa.me lebih andal dan tidak memerlukan izin khusus OS
-    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${RETAILER_WHATSAPP}?text=${encodeURIComponent(message)}`;
 
     Linking.openURL(url).catch(() => {
       Alert.alert("Gagal", "Tidak dapat membuka halaman WhatsApp.");
@@ -25,9 +25,7 @@ export default function ProductDetailScreen({ route, navigation }) {
       {/* Hero Image */}
       <Image
         source={{
-          uri: imageError
-            ? 'https://dummyimage.com/400x300/cccccc/000000&text=No+Image'
-            : product.imageUrl,
+          uri: imageError ? FALLBACK_PRODUCT_IMAGE : product.imageUrl,
         }}
         style={styles.heroImage}
         onError={() => setImageError(true)}
@@ -48,7 +46,7 @@ export default function ProductDetailScreen({ route, navigation }) {
             >
               <Text style={styles.packageBtnText}>
                 Lihat Daftar Paket Terkait 
-                <Ionicons name="logo-dropbox" size={16} color="#8B6508" />
+                <Ionicons name="logo-dropbox" size={16} color="#8B6508" style={styles.packageBtnIcon} />
               </Text>
             </TouchableOpacity>
           )}
@@ -135,7 +133,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   badgeText: {
-    color: '#007A33',
+    color: BRAND_COLOR,
     fontWeight: 'bold',
     fontSize: 12,
   },
@@ -162,6 +160,9 @@ const styles = StyleSheet.create({
     color: '#8B6508', // Emas gelap
     fontWeight: 'bold',
     fontSize: 12,
+  },
+  packageBtnIcon: {
+    marginLeft: 4,
   },
   productName: {
     fontSize: 26,

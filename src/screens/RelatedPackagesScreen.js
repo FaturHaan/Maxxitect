@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  View, Text, StyleSheet, ScrollView, Image, ActivityIndicator, TouchableOpacity
+  View, Text, StyleSheet, ScrollView, Image 
 } from 'react-native';
-import { fetchPackages } from '../services/supabase';
+import { fetchPackages } from '../services/packageService';
+import { BRAND_COLOR, FALLBACK_PACKAGE_IMAGE } from '../constants/config';
+import LoadingView from '../components/common/LoadingView';
 
-export default function RelatedPackagesScreen({ route, navigation }) {
+export default function RelatedPackagesScreen({ route }) {
   const { packageIds } = route.params; // Array of package IDs
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,12 +38,7 @@ export default function RelatedPackagesScreen({ route, navigation }) {
   }, [packageIds]);
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007A33" />
-        <Text style={styles.loadingText}>Memuat daftar paket...</Text>
-      </View>
-    );
+    return <LoadingView text="Memuat daftar paket..." />;
   }
 
   return (
@@ -59,7 +56,7 @@ export default function RelatedPackagesScreen({ route, navigation }) {
         packages.map((pkg) => (
           <View key={pkg.id} style={styles.packageCard}>
             <Image 
-              source={{ uri: pkg.imageUrl || 'https://dummyimage.com/400x200/cccccc/000000&text=Paket' }}
+              source={{ uri: pkg.imageUrl || FALLBACK_PACKAGE_IMAGE }}
               style={styles.packageImage}
             />
             <View style={styles.packageInfo}>
@@ -81,16 +78,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F3F6F4',
-  },
-  loadingText: {
-    marginTop: 12,
-    color: '#666',
   },
   headerTitle: {
     fontSize: 22,
@@ -137,7 +124,7 @@ const styles = StyleSheet.create({
   packageName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#007A33',
+    color: BRAND_COLOR,
     marginBottom: 8,
   },
   packageDesc: {
