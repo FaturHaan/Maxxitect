@@ -119,7 +119,15 @@ export function matchProducts(catalog, diagnosis) {
 
   const result = scoredProducts
     .filter((p) => p.matchScore > 0)
-    .sort((a, b) => b.matchScore - a.matchScore);
+    .sort((a, b) => {
+      if (b.matchScore !== a.matchScore) {
+        return b.matchScore - a.matchScore;
+      }
+      const nameA = (a.productName || '').toLowerCase();
+      const nameB = (b.productName || '').toLowerCase();
+      return nameA.localeCompare(nameB);
+    })
+    .slice(0, 3);
 
   console.log('[ProductMatcher] Hasil:', result.map((p) => `${p.productName} (${p.matchScore})`));
   return result;
