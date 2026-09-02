@@ -126,8 +126,7 @@ export function matchProducts(catalog, diagnosis) {
       const nameA = (a.productName || '').toLowerCase();
       const nameB = (b.productName || '').toLowerCase();
       return nameA.localeCompare(nameB);
-    })
-    .slice(0, 3);
+    });
 
   console.log('[ProductMatcher] Hasil:', result.map((p) => `${p.productName} (${p.matchScore})`));
   return result;

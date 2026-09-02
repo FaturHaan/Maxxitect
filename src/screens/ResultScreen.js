@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  View, Text, StyleSheet, ScrollView, ActivityIndicator 
+  View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity
 } from 'react-native';
 import { fetchProducts } from '../services/productService';
 import { matchProducts } from '../utils/productMatcher';
@@ -11,6 +11,7 @@ export default function ResultScreen({ route, navigation }) {
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [catalogError, setCatalogError] = useState(false);
+  const [showAllProducts, setShowAllProducts] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -71,14 +72,27 @@ export default function ResultScreen({ route, navigation }) {
 
           {/* Daftar Produk Rekomendasi */}
           {recommendedProducts.length > 0 ? (
-            recommendedProducts.map((product, index) => (
-              <ResultProductCard 
-                key={product.id} 
-                product={product} 
-                onPress={() => handleOpenDetail(product)} 
-                isTopMatch={index === 0} // Produk pertama selalu Top Match
-              />
-            ))
+            <>
+              {recommendedProducts.slice(0, showAllProducts ? recommendedProducts.length : 3).map((product, index) => (
+                <ResultProductCard 
+                  key={product.id} 
+                  product={product} 
+                  onPress={() => handleOpenDetail(product)} 
+                  isTopMatch={index === 0} // Produk pertama selalu Top Match
+                />
+              ))}
+
+              {recommendedProducts.length > 3 && (
+                <TouchableOpacity 
+                  style={styles.showMoreButton}
+                  onPress={() => setShowAllProducts(!showAllProducts)}
+                >
+                  <Text style={styles.showMoreButtonText}>
+                    {showAllProducts ? 'Tampilkan Lebih Sedikit' : 'Opsi Produk Lainnya'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
           ) : (
             <View style={styles.noProductCard}>
               <Text style={styles.noProductText}>Belum ada rekomendasi produk spesifik untuk masalah ini di katalog saat ini.</Text>
@@ -179,5 +193,21 @@ const styles = StyleSheet.create({
     color: '#B26A00',
     fontSize: 13,
     textAlign: 'center',
+  },
+  showMoreButton: {
+    backgroundColor: '#E8F5E9',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#007A33',
+    borderStyle: 'dashed',
+  },
+  showMoreButtonText: {
+    color: '#007A33',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
