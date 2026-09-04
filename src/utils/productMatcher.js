@@ -114,6 +114,19 @@ export function matchProducts(catalog, diagnosis) {
       }
     });
 
+    // Langkah Tambahan: Cek kecocokan komoditas / tanaman
+    if (diagnosis.tanaman) {
+      const tanamanUser = diagnosis.tanaman.toLowerCase();
+      const komoditasProduk = normalizeKeywords(product.komoditas).map(k => k.toLowerCase());
+      
+      if (komoditasProduk.length > 0) {
+        const isMatch = komoditasProduk.some(k => tanamanUser.includes(k) || k.includes(tanamanUser));
+        if (isMatch) {
+          score += 5; // Bonus besar untuk produk yang spesifik ke komoditas ini
+        }
+      }
+    }
+
     return { ...product, matchScore: score };
   });
 

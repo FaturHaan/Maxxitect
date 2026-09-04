@@ -12,7 +12,8 @@ Kembalikan respons murni dalam format JSON seperti ini:
 {
   "penyakit": "Nama Penyakit/Hama/Defisiensi",
   "penjelasan": "Penjelasan singkat 1-2 kalimat, termasuk bahan aktif yang umum digunakan",
-  "jenisMasalah": "hama | penyakit | gulma | defisiensi"
+  "jenisMasalah": "hama | penyakit | gulma | defisiensi",
+  "tanaman": "Nama tanaman (contoh: padi, jagung, cabai). Kosongkan jika user tidak menyebutkannya atau tidak terlihat di gambar."
 }
 tanpa blok kode markdown (\\\`\\\`\\\`json).
 
