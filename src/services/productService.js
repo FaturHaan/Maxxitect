@@ -33,6 +33,7 @@ export async function fetchProducts() {
       imageUrl: product.image_url,
       packageIds: product.package_ids || [],
       komoditas: product.komoditas || [],
+      sifatHerbisida: product.sifat_herbisida || null,
     }));
 
     // Simpan ke cache lokal untuk penggunaan offline

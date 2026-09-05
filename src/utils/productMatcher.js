@@ -89,6 +89,23 @@ export function matchProducts(catalog, diagnosis) {
     console.log(`[ProductMatcher] Filter kategori: ${allowed.join(', ')} → ${filteredCatalog.length} produk`);
   }
 
+  // Langkah 1b: Hard-filter herbisida berdasarkan sifat (selektif / non-selektif)
+  // Jika AI mendeteksi masalah gulma dan menentukan sifat herbisida yang dibutuhkan,
+  // buang semua produk herbisida yang sifatnya berlawanan agar tidak muncul sama sekali.
+  const sifatDiagnosis = (diagnosis.sifatHerbisida || '').toLowerCase();
+  if (jenisMasalah === 'gulma' && sifatDiagnosis) {
+    filteredCatalog = filteredCatalog.filter((p) => {
+      const isHerbisida = (p.category || '').toLowerCase() === 'herbisida';
+      if (!isHerbisida) return true; // Bukan herbisida, biarkan lolos
+
+      const sifatProduk = (p.sifatHerbisida || '').toLowerCase();
+      if (!sifatProduk) return false; // Herbisida tanpa sifat yang jelas, buang untuk keamanan
+
+      return sifatProduk === sifatDiagnosis; // Hanya loloskan yang sifatnya SAMA
+    });
+    console.log(`[ProductMatcher] Filter sifat herbisida: ${sifatDiagnosis} → ${filteredCatalog.length} produk`);
+  }
+
   // Langkah 2: Fuse.js untuk fuzzy matching keyword terhadap teks referensi AI
   const fuse = new Fuse([referenceText], {
     includeScore: true,

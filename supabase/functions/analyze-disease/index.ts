@@ -13,9 +13,10 @@ Kembalikan respons murni dalam format JSON seperti ini:
   "penyakit": "Nama Penyakit/Hama/Defisiensi",
   "penjelasan": "Penjelasan singkat 1-2 kalimat, termasuk bahan aktif yang umum digunakan",
   "jenisMasalah": "hama | penyakit | gulma | defisiensi",
-  "tanaman": "Nama tanaman (contoh: padi, jagung, cabai). Kosongkan jika user tidak menyebutkannya atau tidak terlihat di gambar."
+  "tanaman": "Nama tanaman (contoh: padi, jagung, cabai). Kosongkan jika user tidak menyebutkannya atau tidak terlihat di gambar.",
+  "sifatHerbisida": "Jika jenisMasalah adalah gulma: isi 'selektif' jika gulma tumbuh berdampingan dengan tanaman utama/komoditas. Isi 'non-selektif' jika lahan kosong/persiapan tanam. Isi null jika bukan gulma."
 }
-tanpa blok kode markdown (\\\`\\\`\\\`json).
+tanpa blok kode markdown (\`\`\`json).
 
 Aturan untuk jenisMasalah:
 - "hama" = serangan serangga, tungau, siput, tikus, nematoda
