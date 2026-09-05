@@ -32,6 +32,7 @@ export async function fetchProducts() {
       dosage: product.dosage,
       imageUrl: product.image_url,
       packageIds: product.package_ids || [],
+      komoditas: product.komoditas || [],
     }));
 
     // Simpan ke cache lokal untuk penggunaan offline
