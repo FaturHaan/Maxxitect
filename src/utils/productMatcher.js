@@ -106,6 +106,29 @@ export function matchProducts(catalog, diagnosis) {
     console.log(`[ProductMatcher] Filter sifat herbisida: ${sifatDiagnosis} → ${filteredCatalog.length} produk`);
   }
 
+  // Langkah 1c: Hard-filter herbisida selektif berdasarkan komoditas
+  // Herbisida selektif hanya aman untuk komoditas spesifik dan bisa merusak tanaman lain,
+  // sehingga WAJIB dibuang jika komoditasnya tidak sesuai dengan tanaman user.
+  if (jenisMasalah === 'gulma' && diagnosis.tanaman) {
+    const tanamanUser = diagnosis.tanaman.toLowerCase();
+    filteredCatalog = filteredCatalog.filter((p) => {
+      const isHerbisida = (p.category || '').toLowerCase() === 'herbisida';
+      const sifatProduk = (p.sifatHerbisida || '').toLowerCase();
+
+      // Non-herbisida dan herbisida non-selektif → biarkan lolos, tidak terpengaruh
+      if (!isHerbisida || sifatProduk !== 'selektif') return true;
+
+      const komoditasProduk = normalizeKeywords(p.komoditas).map(k => k.toLowerCase());
+
+      // Herbisida selektif tanpa data komoditas → buang untuk keamanan
+      if (komoditasProduk.length === 0) return false;
+
+      // Hanya loloskan jika komoditas produk cocok dengan tanaman user
+      return komoditasProduk.some(k => tanamanUser.includes(k) || k.includes(tanamanUser));
+    });
+    console.log(`[ProductMatcher] Filter komoditas herbisida selektif: ${tanamanUser} → ${filteredCatalog.length} produk`);
+  }
+
   // Langkah 2: Fuse.js untuk fuzzy matching keyword terhadap teks referensi AI
   const fuse = new Fuse([referenceText], {
     includeScore: true,
@@ -132,10 +155,16 @@ export function matchProducts(catalog, diagnosis) {
     });
 
     // Langkah Tambahan: Cek kecocokan komoditas / tanaman
-    if (diagnosis.tanaman) {
+    // Bonus ini TIDAK berlaku untuk herbisida non-selektif, karena herbisida non-selektif
+    // dipilih berdasarkan kondisi lahan (kosong/terkontrol), bukan komoditas tertentu.
+    const isNonSelektif =
+      (product.category || '').toLowerCase() === 'herbisida' &&
+      (product.sifatHerbisida || '').toLowerCase() === 'non-selektif';
+
+    if (diagnosis.tanaman && !isNonSelektif) {
       const tanamanUser = diagnosis.tanaman.toLowerCase();
       const komoditasProduk = normalizeKeywords(product.komoditas).map(k => k.toLowerCase());
-      
+
       if (komoditasProduk.length > 0) {
         const isMatch = komoditasProduk.some(k => tanamanUser.includes(k) || k.includes(tanamanUser));
         if (isMatch) {
