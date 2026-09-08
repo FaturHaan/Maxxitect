@@ -129,6 +129,32 @@ export function matchProducts(catalog, diagnosis) {
     console.log(`[ProductMatcher] Filter komoditas herbisida selektif: ${tanamanUser} → ${filteredCatalog.length} produk`);
   }
 
+  // Langkah 1d: Hard-filter produk selain herbisida berdasarkan komoditas
+  // Jika user menyebutkan tanaman, produk non-herbisida yang tidak memiliki kata "umum" 
+  // pada komoditasnya dan tidak cocok dengan tanaman user WAJIB dibuang.
+  if (diagnosis.tanaman) {
+    const tanamanUser = diagnosis.tanaman.toLowerCase();
+    filteredCatalog = filteredCatalog.filter((p) => {
+      const isHerbisida = (p.category || '').toLowerCase() === 'herbisida';
+      
+      // Aturan ini hanya untuk produk SELAIN herbisida
+      if (isHerbisida) return true;
+
+      const komoditasProduk = normalizeKeywords(p.komoditas).map(k => k.toLowerCase());
+      
+      // Jika produk memiliki label "umum", biarkan lolos
+      const hasUmum = komoditasProduk.some(k => k.includes('umum'));
+      if (hasUmum) return true;
+
+      // Jika produk tanpa data komoditas sama sekali (dan tidak mengandung "umum"), buang
+      if (komoditasProduk.length === 0) return false;
+      
+      // Hanya loloskan jika komoditas produk cocok dengan tanaman user
+      return komoditasProduk.some(k => tanamanUser.includes(k) || k.includes(tanamanUser));
+    });
+    console.log(`[ProductMatcher] Filter komoditas non-herbisida: ${tanamanUser} → ${filteredCatalog.length} produk`);
+  }
+
   // Langkah 2: Fuse.js untuk fuzzy matching keyword terhadap teks referensi AI
   const fuse = new Fuse([referenceText], {
     includeScore: true,
