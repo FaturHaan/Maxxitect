@@ -165,20 +165,29 @@ export function matchProducts(catalog, diagnosis) {
   // Langkah 3: Hitung skor tiap produk
   const scoredProducts = filteredCatalog.map((product) => {
     const keywords = normalizeKeywords(product.keywords);
-    let score = 0;
+    let keywordScore = 0;
 
     keywords.forEach((kw) => {
       if (referenceText.includes(kw.toLowerCase())) {
         // Exact match
-        score += 1;
+        keywordScore += 1;
       } else {
         // Fuzzy match
         const results = fuse.search(kw);
         if (results.length > 0 && results[0].score < 0.4) {
-          score += 0.8;
+          keywordScore += 0.8;
         }
       }
     });
+
+    // [ATURAN KETAT]
+    // Jika tidak ada kata kunci yang cocok dengan masalah (keywordScore == 0), 
+    // produk ini otomatis digugurkan agar tidak salah sasaran.
+    if (keywordScore === 0) {
+      return { ...product, matchScore: 0 };
+    }
+
+    let totalScore = keywordScore;
 
     // Langkah Tambahan: Cek kecocokan komoditas / tanaman
     // Bonus ini TIDAK berlaku untuk herbisida non-selektif, karena herbisida non-selektif
@@ -194,12 +203,12 @@ export function matchProducts(catalog, diagnosis) {
       if (komoditasProduk.length > 0) {
         const isMatch = komoditasProduk.some(k => tanamanUser.includes(k) || k.includes(tanamanUser));
         if (isMatch) {
-          score += 5; // Bonus besar untuk produk yang spesifik ke komoditas ini
+          totalScore += 5; // Bonus besar untuk produk yang spesifik ke komoditas ini
         }
       }
     }
 
-    return { ...product, matchScore: score };
+    return { ...product, matchScore: totalScore };
   });
 
   const result = scoredProducts
